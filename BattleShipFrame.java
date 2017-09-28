@@ -1,34 +1,49 @@
 import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+  
 import java.util.Random;
 
 import javax.imageio.ImageIO;
+
 import javax.swing.*;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
-class BattleShipFrame extends JFrame {
-
+public class BattleShipFrame extends JFrame {
+  private final String BATTLESHIP_LOGO_FILE = "Battleship-Logo.png";
+  private final int FRAME_HEIGHT = 550;
+  private final int FRAME_WIDTH = 800;
+  
   private JPanel logoPanel;
   private JPanel gameOptionsPanel;
   private JPanel gameStatusPanel;
+  private JPanel centerPanel;
+  private JPanel gridsPanel;
   private JPanel playerGridPanel;
   private JPanel opponentGridPanel;
   private JPanel gameReadoutPanel;
+  
   private int gameStatus = 0; //0: ships not placed, 1 : Your turn, 2: opp. turn, ect.
   private int[][] gameBoard = new int[10][10];
   private int[][] opponentBoard = new int[10][10];
   private int[][] playerBoard = new int[10][10];
+  private JTextArea console;
+  private JTextArea status;
   boolean DEBUG = true;
-
-  private JTextArea console = new JTextArea("Console",6,40);
-  private JTextArea status = new JTextArea("status");
-
+  
+  private JLabel battleShipLogoLabel;
+  
   /**
    * Builds all components for the Battleship frame and makes it visible.
    */
-  void loadBattleshipFrame() {
+  public void loadBattleshipFrame() {
     // Logo Panel
     loadBattleShipLogo();
     this.add(logoPanel, BorderLayout.NORTH);
@@ -42,10 +57,10 @@ class BattleShipFrame extends JFrame {
     this.add(gameOptionsPanel, BorderLayout.WEST);
     
     // Center panel to hold grids and readout
-    JPanel centerPanel = new JPanel();
+    centerPanel = new JPanel();
     centerPanel.setLayout(new GridLayout(2, 1));
     this.add(centerPanel, BorderLayout.CENTER);
-    JPanel gridsPanel = new JPanel();
+    gridsPanel = new JPanel();
     gridsPanel.setLayout(new GridLayout(1, 2));
     centerPanel.add(gridsPanel);
     
@@ -63,13 +78,10 @@ class BattleShipFrame extends JFrame {
     centerPanel.add(gameReadoutPanel);
     
     // Frame settings
-    this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-    int FRAME_HEIGHT = 550;
-    int FRAME_WIDTH = 800;
+    this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     this.setSize(FRAME_WIDTH, FRAME_HEIGHT);
     this.setResizable(true);
     this.setVisible(true);
-
   }
 
   private void placeOpponentShips() {
@@ -137,17 +149,16 @@ class BattleShipFrame extends JFrame {
     ans = total <= 0;
     return ans;
   }
-
+  
   /**
    * Loads the logo from the built-in battleship logo file path. 
    */
   private void loadBattleShipLogo() {
     logoPanel = new JPanel();
-    BufferedImage battleShipImg;
+    BufferedImage battleShipImg = null;
     try {
-      String BATTLESHIP_LOGO_FILE = "Battleship-Logo.png";
       battleShipImg = ImageIO.read(getClass().getResource(BATTLESHIP_LOGO_FILE));
-      JLabel battleShipLogoLabel = new JLabel(new ImageIcon(battleShipImg));
+      battleShipLogoLabel = new JLabel(new ImageIcon(battleShipImg));
       logoPanel.add(battleShipLogoLabel);
     } catch (IOException e) {
       e.printStackTrace();
@@ -156,9 +167,12 @@ class BattleShipFrame extends JFrame {
   
   private void loadGameStatus() {
     gameStatusPanel = new JPanel();
+    
     // Game Status code
     gameStatusPanel.add(new JLabel("Game Status"));
     gameStatusPanel.setBorder(new TitledBorder(new EtchedBorder()));
+    status = new JTextArea("status");
+
     // scrollbar for the status pane
     JScrollPane statusPane = new JScrollPane( status );
     gameStatusPanel.add(statusPane);
@@ -195,7 +209,7 @@ class BattleShipFrame extends JFrame {
     gameOptionsPanel.add(options, BorderLayout.SOUTH);
     gameOptionsPanel.setBorder(new TitledBorder(new EtchedBorder()));
   }
-
+  
   private void loadGameReadout() {
     gameReadoutPanel = new JPanel();
     // Game Readout code
@@ -204,14 +218,13 @@ class BattleShipFrame extends JFrame {
     gameReadoutPanel.setLayout(new BorderLayout());
     JScrollPane consolePane = new JScrollPane( console );
     gameReadoutPanel.add(consolePane, BorderLayout.SOUTH);
+    console = new JTextArea("Console",6,40);
     gameReadoutPanel.setBorder(new TitledBorder(new EtchedBorder()));
   }
   
   private void loadPlayerGrid() {
-
     playerGridPanel = new JPanel();
     // Player Grid code
-
     playerGridPanel.add(new JLabel("Player Grid"));
     playerGridPanel.setBorder(new TitledBorder(new EtchedBorder()));
   }
@@ -276,5 +289,4 @@ class BattleShipFrame extends JFrame {
     location.append(msg);
     location.setCaretPosition(location.getDocument().getLength());
   }
-
 }
