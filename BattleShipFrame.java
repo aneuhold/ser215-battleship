@@ -1,5 +1,6 @@
-import java.awt.*;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -8,11 +9,13 @@ import java.util.Random;
 
 import javax.imageio.ImageIO;
 
-import javax.swing.*;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
@@ -30,15 +33,16 @@ public class BattleShipFrame extends JFrame {
   private JPanel opponentGridPanel;
   private JPanel gameReadoutPanel;
   
+  private JTextArea console;
+  private JTextArea status;
+  
+  private JLabel battleShipLogoLabel;
+  
   private int gameStatus = 0; //0: ships not placed, 1 : Your turn, 2: opp. turn, ect.
   private int[][] gameBoard = new int[10][10];
   private int[][] opponentBoard = new int[10][10];
   private int[][] playerBoard = new int[10][10];
-  private JTextArea console;
-  private JTextArea status;
-  boolean DEBUG = true;
-  
-  private JLabel battleShipLogoLabel;
+  private boolean DEBUG = true;
   
   /**
    * Builds all components for the Battleship frame and makes it visible.
@@ -119,7 +123,7 @@ public class BattleShipFrame extends JFrame {
         String msg = String.format("check for ships at pos: [%s, %s], orientation %s, test was %s",
                 chooseColumn, chooseRow, orientation, clear);
         System.out.println(msg);}
-    }while (!clear);
+    } while (!clear);
 
       if (orientation.equals("Horz")) {
         for (int itr = 0; itr < shipSize; itr++) {
@@ -177,6 +181,7 @@ public class BattleShipFrame extends JFrame {
     JScrollPane statusPane = new JScrollPane( status );
     gameStatusPanel.add(statusPane);
   }
+  
   /** Creates JButtons: newGame and options*/
   private void loadGameOptions() {
     int buttonWidth = 100;
@@ -266,9 +271,9 @@ public class BattleShipFrame extends JFrame {
         opponentGridPanel.add(square);
       }
     }
-
     opponentGridPanel.setBorder(new TitledBorder(new EtchedBorder()));
   }
+  
   private String asChar(int val) {
     String ans = "";
     switch (val) {
@@ -284,6 +289,7 @@ public class BattleShipFrame extends JFrame {
       case 9: ans = "J"; break;
     } return ans;
   }
+  
   private void printTo(JTextArea location, String msg)
   {
     location.append(msg);
