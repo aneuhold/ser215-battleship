@@ -217,13 +217,12 @@ public class BattleShipFrame extends JFrame {
   
   private void loadGameReadout() {
     gameReadoutPanel = new JPanel();
-    // Game Readout code
-    gameReadoutPanel.add(new JLabel("Game Readout"));
-    // scrollbar for the console
+    
+    // Scrollbar for the console
+    console = new JTextArea("Console", 6, 40);
+    JScrollPane consolePane = new JScrollPane(console);
     gameReadoutPanel.setLayout(new BorderLayout());
-    JScrollPane consolePane = new JScrollPane( console );
-    gameReadoutPanel.add(consolePane, BorderLayout.SOUTH);
-    console = new JTextArea("Console",6,40);
+    gameReadoutPanel.add(consolePane, BorderLayout.CENTER);
     gameReadoutPanel.setBorder(new TitledBorder(new EtchedBorder()));
   }
   
