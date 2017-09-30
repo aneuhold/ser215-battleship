@@ -1,13 +1,12 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+import java.util.Arrays;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
@@ -25,10 +24,8 @@ import javax.swing.border.TitledBorder;
 public class BattleShipFrame extends JFrame {
 
   private final String BATTLESHIP_LOGO_FILE = "Battleship-Logo.png";
-  private final String YELLOW_ICON_FILE = "Yellow.png";
-  private final String WHITE_ICON_FILE = "White.png";
-  private final int FRAME_HEIGHT = 850;
-  private final int FRAME_WIDTH = 1400;
+  private final int FRAME_HEIGHT = 550;
+  private final int FRAME_WIDTH = 800;
 
   private JPanel logoPanel;
   private JPanel gameOptionsPanel;
@@ -43,27 +40,21 @@ public class BattleShipFrame extends JFrame {
   private JTextArea status;
 
   private JLabel battleShipLogoLabel;
-  
-  BufferedImage battleShipImg = null;
-  BufferedImage yellowIconImg = null;
-  BufferedImage whiteIconImg = null;
 
-  private int shipsPlaced = 0;
+  private int gameStatus = 0; //0: ships not placed, 1 : Your turn, 2: opp. turn, ect.
+  private int[][] gameBoard = new int[10][10];
   private int[][] opponentBoard = new int[10][10];
   private int[][] playerBoard = new int[10][10];
   private boolean DEBUG = true;
+  private int currentShip = 1; // increment every time user places a ship
+  private String currentOrientation = "Vert"; // change with spacebar?
 
   /**
    * Builds all components for the Battleship frame and makes it visible.
    */
   public void loadBattleshipFrame() {
-    // Loading images
-    loadImages();
-    
     // Logo Panel
-    logoPanel = new JPanel();
-    battleShipLogoLabel = new JLabel(new ImageIcon(battleShipImg));
-    logoPanel.add(battleShipLogoLabel);
+    loadBattleShipLogo();
     this.add(logoPanel, BorderLayout.NORTH);
 
     // Game Status
@@ -95,21 +86,21 @@ public class BattleShipFrame extends JFrame {
     loadGameReadout();
     centerPanel.add(gameReadoutPanel);
 
+    // Play Grid
     // Frame settings
     this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     this.setSize(FRAME_WIDTH, FRAME_HEIGHT);
     this.setResizable(true);
     this.setVisible(true);
   }
-  
   private void placePlayerShips() {
         /*
     num     shipType        size
-    1	    Carrier         5
-    2	    Battleship	    4
-    3	    Cruiser	        3
-    4	    Submarine	    3
-    5	    Destroyer	    2 */
+    1     Carrier         5
+    2     Battleship      4
+    3     Cruiser         3
+    4     Submarine     3
+    5     Destroyer     2 */
 
     // Creating Player ship Objects
     ShipPiece playerBattleship = new ShipPiece(ShipType.BATTLESHIP);
@@ -118,21 +109,21 @@ public class BattleShipFrame extends JFrame {
     ShipPiece playerDestroyer = new ShipPiece(ShipType.DESTROYER);
     ShipPiece playerCarrier = new ShipPiece(ShipType.CARRIER);
 
-    placeShip(playerBoard, playerCarrier.getSize(), 1);
-    placeShip(playerBoard, playerBattleship.getSize(), 2);
-    placeShip(playerBoard, playerCruiser.getSize(), 3);
-    placeShip(playerBoard, playerSubmarine.getSize(), 4);
-    placeShip(playerBoard, playerDestroyer.getSize(), 5);
+    placePlayerShip(playerBoard, playerCarrier.getSize(), 1);
+    placePlayerShip(playerBoard, playerBattleship.getSize(), 2);
+    placePlayerShip(playerBoard, playerCruiser.getSize(), 3);
+    placePlayerShip(playerBoard, playerSubmarine.getSize(), 4);
+    placePlayerShip(playerBoard, playerDestroyer.getSize(), 5);
   }
 
   private void placeOpponentShips() {
         /*
     num     shipType        size
-    1	    Carrier         5
-    2	    Battleship	    4
-    3	    Cruiser	        3
-    4	    Submarine	    3
-    5	    Destroyer	    2 */
+    1     Carrier         5
+    2     Battleship      4
+    3     Cruiser         3
+    4     Submarine     3
+    5     Destroyer     2 */
 
     // Creating AI ship Objects
     ShipPiece aiBattleship = new ShipPiece(ShipType.BATTLESHIP);
@@ -148,11 +139,13 @@ public class BattleShipFrame extends JFrame {
     placeShip(opponentBoard, aiDestroyer.getSize(), 5);
   }
 
+  private void changeOrientation() {}
   private void placePlayerShip(int[][] onBoard, int shipSize, int shipNum) {
     if (DEBUG) {
       System.out.println("Looking to place a ship of size" + shipSize);
     }
-    shipNum = 10 * shipNum;
+    shipNum = shipNum;
+    int shipPiece = 10 * shipNum;
     boolean clear;
     int chooseRow;
     int chooseColumn;
@@ -162,7 +155,7 @@ public class BattleShipFrame extends JFrame {
       Random gen = new Random();
       chooseColumn = 0;//gen.nextInt(10 - shipSize) + 1;
       chooseRow = 0;//gen.nextInt(10 - shipSize) + 1;
-      orientation = "Vert";//choice[gen.nextInt(choice.length)];
+      orientation = currentOrientation;//choice[gen.nextInt(choice.length)];
       // Horizontal placement
       clear = clearPath(onBoard, shipSize, orientation, chooseColumn, chooseRow);
       if (DEBUG) {
@@ -224,14 +217,22 @@ public class BattleShipFrame extends JFrame {
 
   private boolean clearPath(int[][] onBoard, int shipSize, String orientation, int chooseColumn, int chooseRow) {
     boolean ans = false;
+    String errMsg = "Ship too long for that position\n";
     int total = 0;
     if (orientation.equals("Horz")) {
       for (int itr = 0; itr < shipSize; itr++) {
-        total += onBoard[chooseColumn][chooseRow + itr];
+        try {
+          total += onBoard[chooseColumn][chooseRow + itr];
+        } catch (ArrayIndexOutOfBoundsException e) { printTo(console, errMsg);}
       }
     } else if (orientation.equals("Vert")) {
       for (int itr = 0; itr < shipSize; itr++) {
-        total += onBoard[chooseColumn + itr][chooseRow];
+        try {
+          total += onBoard[chooseColumn + itr][chooseRow];
+        } catch (ArrayIndexOutOfBoundsException e) {
+          printTo(console, errMsg);
+          total += 9;
+        }
       }
     }
     ans = total <= 0;
@@ -239,13 +240,15 @@ public class BattleShipFrame extends JFrame {
   }
 
   /**
-   * Loads the images for the game.
+   * Loads the logo from the built-in battleship logo file path.
    */
-  private void loadImages() {
+  private void loadBattleShipLogo() {
+    logoPanel = new JPanel();
+    BufferedImage battleShipImg = null;
     try {
       battleShipImg = ImageIO.read(getClass().getResource(BATTLESHIP_LOGO_FILE));
-      yellowIconImg = ImageIO.read(getClass().getResource(YELLOW_ICON_FILE));
-      whiteIconImg = ImageIO.read(getClass().getResource(WHITE_ICON_FILE));
+      battleShipLogoLabel = new JLabel(new ImageIcon(battleShipImg));
+      logoPanel.add(battleShipLogoLabel);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -281,7 +284,7 @@ public class BattleShipFrame extends JFrame {
       // newGame Actions:
       printTo(console, "New Game pressed\n");
       dispose();
-      // BattleShipTestClass.newGame();
+      BattleShipTestClass.newGame();
       // reset boards:
       for (int eachCol = 0; eachCol < opponentBoard[1].length; eachCol++) {
         for (int eachRow = 0; eachRow < opponentBoard[1].length; eachRow++) {
@@ -306,11 +309,72 @@ public class BattleShipFrame extends JFrame {
     gameReadoutPanel = new JPanel();
 
     // Scrollbar for the console
-    console = new JTextArea("Console", 6, 40);
+    console = new JTextArea("Console\n", 6, 40);
     JScrollPane consolePane = new JScrollPane(console);
     gameReadoutPanel.setLayout(new BorderLayout());
     gameReadoutPanel.add(consolePane, BorderLayout.CENTER);
     gameReadoutPanel.setBorder(new TitledBorder(new EtchedBorder()));
+  }
+  private void updatePlayerGrid(){
+    String orientation = "Vert";
+
+    Component[] btns = playerGridPanel.getComponents();
+    if(DEBUG){ System.out.println("updatePlayerGrid() called "); }
+    int currentSize = 1;
+    String currentShipName = "";
+    String imgPath = "";
+    switch (currentShip){
+      case 1 :
+        currentSize = ShipType.CARRIER.size;
+        currentShipName = ShipType.CARRIER.name;
+        break;
+      case 2 :
+        currentSize = ShipType.BATTLESHIP.size;
+        currentShipName = ShipType.BATTLESHIP.name;
+        break;
+      case 3 :
+        currentSize = ShipType.CRUISER.size;
+        currentShipName = ShipType.CRUISER.name;
+        break;
+      case 4 :
+        currentSize = ShipType.SUBMARINE.size;
+        currentShipName = ShipType.SUBMARINE.name;
+        break;
+      case 5 :
+        currentSize = ShipType.DESTROYER.size;
+        currentShipName = ShipType.DESTROYER.name;
+        break;
+    }
+    for(int i=0; i < btns.length; i++) {
+      if (btns[i] instanceof JButton) {
+
+        JButton btn = (JButton) btns[i];
+        int thisColumn = getBtnColumn(btn.getText());
+        int thisRow = getBtnRow(btn.getText());
+        int shipPiece = (playerBoard[thisColumn][thisRow] + 1) % 10;
+        if(playerBoard[thisColumn][thisRow] > 0 && shipPiece <= currentSize) { // This line right?
+          if (DEBUG) {
+            System.out.println(
+                    "Looking at" + btn.getText() + "[" + thisColumn + "," + thisRow + "]");
+          }
+          imgPath = "img/" + orientation + currentShipName + shipPiece + ".png";
+
+          if (DEBUG) {
+            System.out.println("attempting to place imgPath = " + imgPath);
+          }
+          try {
+            BufferedImage img = ImageIO.read(getClass().getResource(imgPath));
+            btn.setIcon(new ImageIcon(img));
+          } catch (Exception ex) {
+            System.out.println("ImageIcon Swap Error:\t" + ex);
+            // Might be out of ships increment gameStatus
+            gameStatus++;
+          }
+        }else {btn.setBackground(Color.BLUE);}
+        //square.setEnabled(false);
+      }
+    }
+
   }
 
   private void loadPlayerGrid() {
@@ -328,35 +392,113 @@ public class BattleShipFrame extends JFrame {
         JButton square = new JButton(boardPOS);
         square.setPreferredSize(new Dimension(squareSize, squareSize));
         square.setMaximumSize(new Dimension(squareSize, squareSize));
+        if (playerBoard[column][row] > 0) { }
         int thisColumn = column;
         int thisRow = row;
         square.addActionListener(e -> {
-          // square Actions:
+
           String msg = boardPOS + " Pressed\n";
+          if (DEBUG){System.out.println(e.toString());}
           printTo(console, msg);
-          if (playerBoard[thisColumn][thisRow] == 0) {
-            msg = String.format("%s was a miss!\n", boardPOS);
-            square.setBackground(Color.RED);
-            square.setEnabled(false);
-          } else if (playerBoard[thisColumn][thisRow] > 0) {
-            msg = String.format("%s was a hit!\n", boardPOS);
-            square.setBackground(Color.GREEN);
-            square.setEnabled(false);
+          int currentSize = 1;
+          String currentShipName = "";
+          String imgPath = "";
+          switch (currentShip){
+            case 1 :
+              currentSize = ShipType.CARRIER.size;
+              currentShipName = ShipType.CARRIER.name;
+              break;
+            case 2 :
+              currentSize = ShipType.BATTLESHIP.size;
+              currentShipName = ShipType.BATTLESHIP.name;
+              break;
+            case 3 :
+              currentSize = ShipType.CRUISER.size;
+              currentShipName = ShipType.CRUISER.name;
+              break;
+            case 4 :
+              currentSize = ShipType.SUBMARINE.size;
+              currentShipName = ShipType.SUBMARINE.name;
+              break;
+            case 5 :
+              currentSize = ShipType.DESTROYER.size;
+              currentShipName = ShipType.DESTROYER.name;
+              break;
           }
-          //printTo(console, msg);
-        });
-        
-        // Hovering the mouse over an icon settings
-        square.setIcon(new ImageIcon(whiteIconImg));
-        square.setRolloverIcon(new ImageIcon(yellowIconImg));
-        square.setRolloverEnabled(true);
-        
+
+          if (clearPath(playerBoard,currentSize,currentOrientation, thisColumn, thisRow)) {
+            String orientation =currentOrientation;
+            msg = String.format("%s placed at %s!\n", currentShipName, boardPOS);
+            for (int i=1; i <=currentSize; i++){
+              if (orientation.equals("Horz")) {
+                playerBoard[getBtnColumn(square.getText())][getBtnRow(square.getText())+i] = currentShip * 10 + i;
+              }else if (orientation.equals("Vert")) {
+                playerBoard[getBtnColumn(square.getText())+i][getBtnRow(square.getText())] = currentShip * 10 + i;
+              }
+
+            }
+            if(DEBUG) { System.out.println("playerBoard = "+Arrays.deepToString(playerBoard));}
+
+            int shipPiece = playerBoard[thisColumn][thisRow]+1;
+            imgPath = "img/"+orientation+currentShipName+shipPiece+".png";
+            if (DEBUG){System.out.println("attempting to place imgPath = "+imgPath);}
+            try {
+              BufferedImage img = ImageIO.read(getClass().getResource(imgPath));
+              square.setIcon(new ImageIcon(img));
+            } catch (Exception ex) {
+              System.out.println("ImageIcon Swap Error:\t"+ex);
+            }
+            square.setBackground(Color.BLACK);
+            //square.setEnabled(false);
+            updatePlayerGrid();
+            currentShip++;
+            getNextShip();
+
+          } else if (playerBoard[thisColumn][thisRow] > 0) {
+            msg = String.format("%s not available!\n", boardPOS);
+            //square.setEnabled(false);
+          }
+        });/*
+        System.out.println(square.getText()+ " = arrayValue[" +
+                getBtnColumn( square.getText())+"," + getBtnRow(square.getText())+"]");*/
         playerGridPanel.add(square);
+
       }
     }
-    //playerGridPanel.add(new JLabel("Player Grid"));
     playerGridPanel.setBorder(new TitledBorder(new EtchedBorder()));
 
+  }
+
+  private void getNextShip() {
+    int currentSize = 1;
+    String currentShipName = "";
+    switch (currentShip){
+      case 1 :
+        currentSize = ShipType.CARRIER.size;
+        currentShipName = ShipType.CARRIER.name;
+        break;
+      case 2 :
+        currentSize = ShipType.BATTLESHIP.size;
+        currentShipName = ShipType.BATTLESHIP.name;
+        break;
+      case 3 :
+        currentSize = ShipType.CRUISER.size;
+        currentShipName = ShipType.CRUISER.name;
+        break;
+      case 4 :
+        currentSize = ShipType.SUBMARINE.size;
+        currentShipName = ShipType.SUBMARINE.name;
+        break;
+      case 5 :
+        currentSize = ShipType.DESTROYER.size;
+        currentShipName = ShipType.DESTROYER.name;
+        break;
+    }
+    if(currentShip <= 5)
+    {
+      String msg = "Where would you like to place your "+ currentShipName+" at?\n";
+      printTo(console,msg);
+    } else if (currentShip > 5) {printTo(console,"All ships have been placed already!");}
   }
 
   private void loadOpponentGrid() {
@@ -434,11 +576,56 @@ public class BattleShipFrame extends JFrame {
     }
     return ans;
   }
+  private int getBtnRow(String text) {
+    String storedValue = "";
+    if (text.length() == 2) {
+      storedValue = text.substring(text.length() - 1, text.length());
+    }else if (text.length() == 3){
+      storedValue = text.substring(text.length() - 2, text.length());
+    }
+    int ans = Integer.parseInt(storedValue) - 1; // start counting from 0 instead of 1
+    return ans;
+  }
+  private int getBtnColumn(String text) {
+    String firstChar = text.substring(0,1);
+    int ans=0;
+    switch (firstChar) {
+      case "A":
+        ans = 0;
+        break;
+      case "B":
+        ans = 1;
+        break;
+      case "C":
+        ans = 2;
+        break;
+      case "D":
+        ans = 3;
+        break;
+      case "E":
+        ans = 4;
+        break;
+      case "F":
+        ans = 5;
+        break;
+      case "G":
+        ans = 6;
+        break;
+      case "H":
+        ans = 7;
+        break;
+      case "I":
+        ans = 8;
+        break;
+      case "J":
+        ans = 9;
+        break;
+    }
+    return ans;
+  }
 
   private void printTo(JTextArea location, String msg) {
     location.append(msg);
     location.setCaretPosition(location.getDocument().getLength());
   }
 }
-
-
