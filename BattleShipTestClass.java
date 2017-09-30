@@ -1,7 +1,18 @@
 
 public class BattleShipTestClass {
-  public static void main(String[] args) {
+
     BattleShipFrame bsf = new BattleShipFrame();
-    bsf.loadBattleshipFrame();
-  }
+
+    // Start of game
+    public static void main(String[] args) {
+        newGame();
+    }
+
+    // Restarting game
+    public static void newGame() {
+
+        BattleShipFrame bsf = new BattleShipFrame();
+        bsf.loadBattleshipFrame();
+    }
+
 }

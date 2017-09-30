@@ -103,25 +103,24 @@ public class BattleShipFrame extends JFrame {
 
     public void loadGameStatus() {
         gameStatusPanel = new JPanel();
-
         gameStatusPanel.add(new JLabel("Game Status"));
         gameStatusPanel.setBorder(new TitledBorder(new EtchedBorder()));
         gameStatusPanel.add(StatusOutput.status);
-
     }
 
     public void updateGameStatus(GamePlay turnOrder) {
         JLabel gameStatus = new JLabel();
         if (turnOrder.gameStatus.equals("opponenets turn")) {
-            gameStatus.setText("players turn");
-
+            //gameStatus.setText("players turn");
+            ConsoleOutput.display("It's the Opponent's turn,\n"+
+            "they have fired on grid "+ AI.getLastOpponentShot() +"on the Opponent Grid to the right.");
         }
         if (turnOrder.gameStatus.endsWith("players turn")) {
-            gameStatus.setText("opponenets turn");
-
+            //gameStatus.setText("opponenets turn");
+            ConsoleOutput.display("It's your turn,\nPlace a ship"+
+            "by clicking a button on the Opponent Grid to the right.");
         }
         gameStatusPanel.add(gameStatus);
-
     }
 
     public void loadGameOptions() {

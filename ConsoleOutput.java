@@ -1,4 +1,4 @@
-import javax.swing.*;
+import javax.swing.JTextArea;
 
 /** ConsoleOutput.java    [ ser215-group-project-jfijewsk-patch-2 ]
  * by Ryan Migaud   < Rmigaud@asu.edu >  on: 9/30/2017   at: 2:07 PM

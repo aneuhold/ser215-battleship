@@ -3,7 +3,7 @@
  */
 public class GamePlay {
 
-    String gameStatus;
+    static String gameStatus;
 
     public GamePlay() {
         gameStatus = "players turn";
@@ -11,13 +11,11 @@ public class GamePlay {
 
     public void takingTurns() {
         //    if (gameStatus == 2) {
-
     }
 
-    public void switchTurns(GamePlay turnOrder) {
+    public static void switchTurns(GamePlay turnOrder) {
         if (turnOrder.gameStatus.equals("players turn")) {
             turnOrder.gameStatus = "Opponents turn";
-
         }
         if (gameStatus.equals("Opponents turn")) {
             gameStatus = "players turn";
@@ -27,5 +25,4 @@ public class GamePlay {
     public String getTurnOrder() {
         return gameStatus;
     }
-
 }

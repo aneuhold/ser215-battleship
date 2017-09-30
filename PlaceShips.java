@@ -4,7 +4,6 @@ import java.util.Random;
 public class PlaceShips {
 
     GameBoardArray temp = new GameBoardArray();
-    boolean DEBUG = true;
 
     public PlaceShips(GameBoardArray board) {
         temp = board;
@@ -43,10 +42,6 @@ public class PlaceShips {
 
     // helper method for opponentShipPlacing
     private void placeOpponentShips(GameBoardArray board, int shipSize, int shipNum) {
-
-        if (DEBUG) {
-            System.out.println("Looking to place a ship of size" + shipSize);
-        }
         shipNum = 10 * shipNum;
         boolean clear;
         int chooseRow;
@@ -58,22 +53,15 @@ public class PlaceShips {
             chooseColumn = gen.nextInt(10 - shipSize) + 1;
             chooseRow = gen.nextInt(10 - shipSize) + 1;
             orientation = choice[gen.nextInt(choice.length)];
-            // Horizontal placement
+
             clear = clearPath(board.array, shipSize, orientation, chooseColumn, chooseRow);
-            if (DEBUG) {
-                String msg = String.format("check for ships at pos: [%s, %s], orientation %s, test was %s",
-                        chooseColumn, chooseRow, orientation, clear);
-                System.out.println(msg);
-            }
         } while (!clear);
 
-        if (orientation.equals("Horz")) {
+        if (orientation.equals("Horz")) {   // Horizontal placement
             for (int itr = 0; itr < shipSize; itr++) {
-                // tens place Carrier for now
                 board.array[chooseColumn][chooseRow + itr] = shipNum + itr;
             }
-        } else if (orientation.equals("Vert")) {
-            // vertical implementation
+        } else if (orientation.equals("Vert")) {    // vertical implementation
             for (int itr = 0; itr < shipSize; itr++) {
                 board.array[chooseColumn + itr][chooseRow] = shipNum + itr;
             }
@@ -90,6 +78,7 @@ public class PlaceShips {
                 try {
                     total += onBoard[chooseColumn][chooseRow + itr];
                 } catch (ArrayIndexOutOfBoundsException e) {
+                    StatusOutput.display(errMsg);
                     //      printTo(console, errMsg);
                 }
             }
@@ -98,6 +87,7 @@ public class PlaceShips {
                 try {
                     total += onBoard[chooseColumn + itr][chooseRow];
                 } catch (ArrayIndexOutOfBoundsException e) {
+                    StatusOutput.display(errMsg);
                     //     printTo(console, errMsg);
                     total += 9;
                 }
