@@ -6,17 +6,12 @@ import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-import java.util.Random;
-
 import javax.imageio.ImageIO;
-
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
@@ -29,27 +24,21 @@ public class BattleShipFrame extends JFrame {
     private JPanel logoPanel;
     private JPanel gameOptionsPanel;
     private JPanel gameStatusPanel;
+
     private JPanel centerPanel;
     private JPanel gridsPanel;
     private JPanel playerGridPanel;
     private JPanel opponentGridPanel;
     private JPanel gameReadoutPanel;
 
-    private JTextArea console;
-    private JTextArea status;
-
     private JLabel battleShipLogoLabel;
-
-    private int gameStatus = 0; //0: ships not placed, 1 : Your turn, 2: opp. turn, ect.
-    private int[][] gameBoard = new int[10][10];
-    private int[][] opponentBoard = new int[10][10];
-    private int[][] playerBoard = new int[10][10];
-    private boolean DEBUG = true;
+    GamePlay turnOrder = new GamePlay();
 
     /**
      * Builds all components for the Battleship frame and makes it visible.
      */
     public void loadBattleshipFrame() {
+
         // Logo Panel
         loadBattleShipLogo();
         this.add(logoPanel, BorderLayout.NORTH);
@@ -71,12 +60,18 @@ public class BattleShipFrame extends JFrame {
         centerPanel.add(gridsPanel);
 
         // Player Grid Panel
+        GameBoardArray playerBoard = new GameBoardArray();
         loadPlayerGrid();
+        updatePlayerGUI(playerBoard);
+
         gridsPanel.add(playerGridPanel);
 
         // Opponent Grid Panel
+        GameBoardArray opponentBoard = new GameBoardArray();
         loadOpponentGrid();
-        placeOpponentShips();
+        PlaceShips ships = new PlaceShips(opponentBoard);
+        ships.opponentShipPlacing();
+        updateAiGUI(opponentBoard);
         gridsPanel.add(opponentGridPanel);
 
         // Game Readout
@@ -88,88 +83,14 @@ public class BattleShipFrame extends JFrame {
         this.setSize(FRAME_WIDTH, FRAME_HEIGHT);
         this.setResizable(true);
         this.setVisible(true);
-    }
 
-    private void placeOpponentShips() {
-        /*
-    num     shipType        size
-    1	    Carrier         5
-    2	    Battleship	    4
-    3	    Cruiser	        3
-    4	    Submarine	    3
-    5	    Destroyer	    2 */
-
-        // Creating AI ship Objects
-        ShipPiece aiBattleship = new ShipPiece(ShipType.BATTLESHIP);
-        ShipPiece aiCruiser = new ShipPiece(ShipType.CRUISER);
-        ShipPiece aiSubmarine = new ShipPiece(ShipType.SUBMARINE);
-        ShipPiece aiDestroyer = new ShipPiece(ShipType.DESTROYER);
-        ShipPiece aiCarrier = new ShipPiece(ShipType.CARRIER);
-
-        placeShip(opponentBoard, aiCarrier.getSize(), 1);
-        placeShip(opponentBoard, aiBattleship.getSize(), 2);
-        placeShip(opponentBoard, aiCruiser.getSize(), 3);
-        placeShip(opponentBoard, aiSubmarine.getSize(), 4);
-        placeShip(opponentBoard, aiDestroyer.getSize(), 5);
-    }
-
-    private void placeShip(int[][] onBoard, int shipSize, int shipNum) {
-        if (DEBUG) {
-            System.out.println("Looking to place a ship of size" + shipSize);
-        }
-        shipNum = 10 * shipNum;
-        boolean clear;
-        int chooseRow;
-        int chooseColumn;
-        String orientation;
-        String[] choice = {"Vert", "Horz"};
-        do {
-            Random gen = new Random();
-            chooseColumn = gen.nextInt(10 - shipSize) + 1;
-            chooseRow = gen.nextInt(10 - shipSize) + 1;
-            orientation = choice[gen.nextInt(choice.length)];
-            // Horizontal placement
-            clear = clearPath(onBoard, shipSize, orientation, chooseColumn, chooseRow);
-            if (DEBUG) {
-                String msg = String.format("check for ships at pos: [%s, %s], orientation %s, test was %s",
-                        chooseColumn, chooseRow, orientation, clear);
-                System.out.println(msg);
-            }
-        } while (!clear);
-
-        if (orientation.equals("Horz")) {
-            for (int itr = 0; itr < shipSize; itr++) {
-                // tens place Carrier for now
-                onBoard[chooseColumn][chooseRow + itr] = shipNum + itr;
-            }
-        } else if (orientation.equals("Vert")) {
-            // vertical implementation
-            for (int itr = 0; itr < shipSize; itr++) {
-                onBoard[chooseColumn + itr][chooseRow] = shipNum + itr;
-            }
-        }
-    }
-
-    private boolean clearPath(int[][] onBoard, int shipSize, String orientation, int chooseColumn, int chooseRow) {
-        boolean ans = false;
-        int total = 0;
-        if (orientation.equals("Horz")) {
-            for (int itr = 0; itr < shipSize; itr++) {
-                total += onBoard[chooseColumn][chooseRow + itr];
-            }
-        } else if (orientation.equals("Vert")) {
-            for (int itr = 0; itr < shipSize; itr++) {
-                total += onBoard[chooseColumn + itr][chooseRow];
-            }
-        }
-        ans = total <= 0;
-        return ans;
+        //creating game turn order
     }
 
     /**
      * Loads the logo from the built-in battleship logo file path.
      */
-    private void loadBattleShipLogo() {
+    public void loadBattleShipLogo() {
         logoPanel = new JPanel();
         BufferedImage battleShipImg = null;
         try {
@@ -179,25 +100,31 @@ public class BattleShipFrame extends JFrame {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        this.add(logoPanel, BorderLayout.NORTH);
     }
 
-    private void loadGameStatus() {
+    public void loadGameStatus() {
         gameStatusPanel = new JPanel();
 
-        // Game Status code
         gameStatusPanel.add(new JLabel("Game Status"));
         gameStatusPanel.setBorder(new TitledBorder(new EtchedBorder()));
-        status = new JTextArea("status");
-
-        // scrollbar for the status pane
-        JScrollPane statusPane = new JScrollPane(status);
-        gameStatusPanel.add(statusPane);
     }
 
-    /**
-     * Creates JButtons: newGame and options
-     */
-    private void loadGameOptions() {
+    public void updateGameStatus(GamePlay turnOrder) {
+        JLabel gameStatus = new JLabel();
+        if (turnOrder.gameStatus.equals("opponenets turn")) {
+            gameStatus.setText("players turn");
+
+        }
+        if (turnOrder.gameStatus.endsWith("players turn")) {
+            gameStatus.setText("opponenets turn");
+
+        }
+        gameStatusPanel.add(gameStatus);
+
+    }
+
+    public void loadGameOptions() {
         int buttonWidth = 100;
         int buttonHeight = 20;
         gameOptionsPanel = new JPanel();
@@ -209,15 +136,9 @@ public class BattleShipFrame extends JFrame {
         newGame.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
         newGame.addActionListener(e -> {
             // newGame Actions:
-            printTo(console, "New Game pressed\n");
             dispose();
-            BattleShipTestClass.newGame();
-            // reset boards:
-            for (int eachCol = 0; eachCol < opponentBoard[1].length; eachCol++) {
-                for (int eachRow = 0; eachRow < opponentBoard[1].length; eachRow++) {
-                    opponentBoard[eachCol][eachRow] = 0;
-                }
-            }
+            BattleShipMain.newGame();
+
         });
         gameOptionsPanel.add(newGame, BorderLayout.BEFORE_FIRST_LINE);
         // Options
@@ -226,31 +147,35 @@ public class BattleShipFrame extends JFrame {
         options.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
         options.addActionListener(e -> {
             // Options Actions:
-            printTo(console, "Options pressed\n");
         });
         gameOptionsPanel.add(options, BorderLayout.SOUTH);
         gameOptionsPanel.setBorder(new TitledBorder(new EtchedBorder()));
     }
 
-    private void loadGameReadout() {
+    public void loadGameReadout() {
         gameReadoutPanel = new JPanel();
-
-        // Scrollbar for the console
-        console = new JTextArea("Console", 6, 40);
-        JScrollPane consolePane = new JScrollPane(console);
-        gameReadoutPanel.setLayout(new BorderLayout());
-        gameReadoutPanel.add(consolePane, BorderLayout.CENTER);
+        // Game Readout code
+        gameReadoutPanel.add(new JLabel("Game Readout"));
         gameReadoutPanel.setBorder(new TitledBorder(new EtchedBorder()));
     }
 
-    private void loadPlayerGrid() {
+    public void loadPlayerGrid() {
         playerGridPanel = new JPanel();
         // Player Grid code
         playerGridPanel.add(new JLabel("Player Grid"));
         playerGridPanel.setBorder(new TitledBorder(new EtchedBorder()));
     }
 
-    private void loadOpponentGrid() {
+    public void loadOpponentGrid() {
+        opponentGridPanel = new JPanel();
+        // Opponent Grid code
+        opponentGridPanel.add(new JLabel("Opponent Grid"));
+        opponentGridPanel.setBorder(new TitledBorder(new EtchedBorder()));
+
+    }
+
+    // call this to update opponenent GUI after event
+    public void updateAiGUI(GameBoardArray board) {
         opponentGridPanel = new JPanel();
         GridLayout layout = new GridLayout(0, 10);
         layout.setHgap(0);
@@ -258,7 +183,8 @@ public class BattleShipFrame extends JFrame {
         int squareSize = 30;
         opponentGridPanel.setLayout(layout);
         // Opponent Grid code
-        //opponentGridPanel.add(new JLabel("Opponent Grid")); // having trouble aligning
+
+        turnOrder.switchTurns(turnOrder);
         int column, row;
         for (column = 0; column < 10; column++) {
             for (row = 0; row < 10; row++) {
@@ -266,29 +192,79 @@ public class BattleShipFrame extends JFrame {
                 JButton square = new JButton(boardPOS);
                 square.setPreferredSize(new Dimension(squareSize, squareSize));
                 square.setMaximumSize(new Dimension(squareSize, squareSize));
+
                 int thisColumn = column;
                 int thisRow = row;
+
                 square.addActionListener(e -> {
                     // square Actions:
-                    String msg = boardPOS + " Pressed\n";
-                    printTo(console, msg);
-                    if (opponentBoard[thisColumn][thisRow] == 0) {
-                        msg = String.format("%s was a miss!\n", boardPOS);
-                        square.setBackground(Color.RED);
-                        square.setEnabled(false);
-                    } else if (opponentBoard[thisColumn][thisRow] > 0) {
-                        msg = String.format("%s was a hit!\n", boardPOS);
-                        square.setBackground(Color.GREEN);
-                        square.setEnabled(false);
+
+                    if (turnOrder.gameStatus.equals("players turn")) {
+
+                        String msg = boardPOS + " Pressed\n";
+                        if (board.array[thisColumn][thisRow] == 0) {
+                            msg = String.format("%s was a miss!\n", boardPOS);
+                            square.setBackground(Color.RED);
+                            square.setEnabled(false);
+                        } else if (board.array[thisColumn][thisRow] > 0) {
+                            msg = String.format("%s was a hit!\n", boardPOS);
+                            square.setBackground(Color.GREEN);
+                            square.setEnabled(false);
+                        }
+
+                        updateGameStatus(turnOrder);
+                        updateAiGUI(board);
                     }
-                    printTo(console, msg);
+                    //printTo(console, msg);
                 });
+
                 opponentGridPanel.add(square);
             }
         }
-        opponentGridPanel.setBorder(new TitledBorder(new EtchedBorder()));
+
     }
 
+    // call this to update player GUI after event
+    public void updatePlayerGUI(GameBoardArray board) {
+        playerGridPanel = new JPanel();
+        GridLayout layout = new GridLayout(0, 10);
+        layout.setHgap(0);
+        layout.setVgap(0);
+        int squareSize = 30;
+        playerGridPanel.setLayout(layout);
+        // Player Grid code
+        int column, row;
+        for (column = 0; column < 10; column++) {
+            for (row = 0; row < 10; row++) {
+                String boardPOS = String.format("%s%s", asChar(column), row + 1);
+                JButton square = new JButton(boardPOS);
+                square.setPreferredSize(new Dimension(squareSize, squareSize));
+                square.setMaximumSize(new Dimension(squareSize, squareSize));
+
+                // 0 means no shots attempted at this loaction, -1 means hit, -2 means miss,
+                // refresh board if location was a hit
+                if (board.array[column][row] == -1) {
+                    square.setBackground(Color.RED);
+                    square.setEnabled(false);
+                }
+
+                // refresh board if location was a miss
+                if (board.array[column][row] == -2) {
+                    square.setBackground(Color.BLUE);
+                    square.setEnabled(false);
+                }
+
+                if (board.array[column][row] > 0) {
+                    square.setBackground(Color.GREEN);
+                    square.setEnabled(false);
+                }
+                playerGridPanel.add(square);
+
+            }
+        }
+    }
+
+    // this method is just used to display letters onto GUI board buttons
     private String asChar(int val) {
         String ans = "";
         switch (val) {
@@ -326,8 +302,53 @@ public class BattleShipFrame extends JFrame {
         return ans;
     }
 
-    private void printTo(JTextArea location, String msg) {
-        location.append(msg);
-        location.setCaretPosition(location.getDocument().getLength());
+    private int getBtnRow(String text) {
+        String storedValue = "";
+        if (text.length() == 2) {
+            storedValue = text.substring(text.length() - 1, text.length());
+        } else if (text.length() == 3) {
+            storedValue = text.substring(text.length() - 2, text.length());
+        }
+        int ans = Integer.parseInt(storedValue) - 1; // start counting from 0 instead of 1
+        return ans;
+    }
+
+    //this method is just used to display GUI button numbers
+    private int getBtnColumn(String text) {
+        String firstChar = text.substring(0, 1);
+        int ans = 0;
+        switch (firstChar) {
+            case "A":
+                ans = 0;
+                break;
+            case "B":
+                ans = 1;
+                break;
+            case "C":
+                ans = 2;
+                break;
+            case "D":
+                ans = 3;
+                break;
+            case "E":
+                ans = 4;
+                break;
+            case "F":
+                ans = 5;
+                break;
+            case "G":
+                ans = 6;
+                break;
+            case "H":
+                ans = 7;
+                break;
+            case "I":
+                ans = 8;
+                break;
+            case "J":
+                ans = 9;
+                break;
+        }
+        return ans;
     }
 }
