@@ -1,4 +1,3 @@
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -110,14 +109,15 @@ public class BattleShipFrame extends JFrame {
 
     public void updateGameStatus(GamePlay turnOrder) {
         JLabel gameStatus = new JLabel();
-        if (turnOrder.gameStatus.equals("opponenets turn")) {
+        if (turnOrder.gameStatus.equals("Opponents turn")) {
             //gameStatus.setText("players turn");
             ConsoleOutput.display("It's the Opponent's turn,\n"+
-            "they have fired on grid "+ AI.getLastOpponentShot() +"on the Opponent Grid to the right.");
+            "they have fired on grid "+ AI.getLastOpponentShot() +
+                    "on the Opponent Grid to the right.");
         }
         if (turnOrder.gameStatus.endsWith("players turn")) {
             //gameStatus.setText("opponenets turn");
-            ConsoleOutput.display("It's your turn,\nPlace a ship"+
+            ConsoleOutput.display("It's your turn,\n"+
             "by clicking a button on the Opponent Grid to the right.");
         }
         gameStatusPanel.add(gameStatus);
@@ -169,7 +169,6 @@ public class BattleShipFrame extends JFrame {
         // Opponent Grid code
         opponentGridPanel.add(new JLabel("Opponent Grid"));
         opponentGridPanel.setBorder(new TitledBorder(new EtchedBorder()));
-
     }
 
     // call this to update opponenent GUI after event
@@ -206,12 +205,11 @@ public class BattleShipFrame extends JFrame {
                             square.setBackground(Color.GREEN);
                             square.setEnabled(false);
                         }
+                        ConsoleOutput.display(msg);
                         updateGameStatus(turnOrder);
                         updateAiGUI(board);
                     }
-                    //printTo(console, msg);
                 });
-
                 opponentGridPanel.add(square);
             }
         }
@@ -223,7 +221,6 @@ public class BattleShipFrame extends JFrame {
         GridLayout layout = new GridLayout(0, 10);
         int squareSize = 30;
         playerGridPanel.setLayout(layout);
-
         // Player Grid code
         int column, row;
         for (column = 0; column < 10; column++) {
@@ -232,27 +229,23 @@ public class BattleShipFrame extends JFrame {
                 JButton square = new JButton(boardPOS);
                 square.setPreferredSize(new Dimension(squareSize, squareSize));
                 square.setMaximumSize(new Dimension(squareSize, squareSize));
-
                 // 0 means no shots attempted at this loaction, -1 means hit, -2 means miss,
                 // refresh board if location was a hit
                 if (board.array[column][row] == -1) {
                     square.setBackground(Color.RED);
                     square.setEnabled(false);
                 }
-
                 // refresh board if location was a miss
                 if (board.array[column][row] == -2) {
                     square.setBackground(Color.BLUE);
                     square.setEnabled(false);
                 }
-
                 // Record a Hit
                 if (board.array[column][row] > 0) {
                     square.setBackground(Color.GREEN);
                     square.setEnabled(false);
                 }
                 playerGridPanel.add(square);
-
             }
         }
     }

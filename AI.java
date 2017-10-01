@@ -15,9 +15,7 @@ public class AI {
     public static int lastShotRow;
     public static int lastShotCol;
 
-    AI() {
-        AI.init();
-    }
+    AI() { AI.init(); }
     /* init()   initializes the firstUpon map to zero*/
     public static void init() {
         for (int i = 0; i < firedUpon.length; i++) {
@@ -26,6 +24,7 @@ public class AI {
             }
         }
     }
+
     /* AI's turn to shoot*/
     public void pickAsquare(){
         int pickedRow = gen.nextInt(firedUpon.length);

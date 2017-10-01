@@ -5,13 +5,11 @@ public class PlaceShips {
 
     GameBoardArray temp = new GameBoardArray();
 
-    public PlaceShips(GameBoardArray board) {
-        temp = board;
-    }
+    public PlaceShips(GameBoardArray board) { temp = board; }
 
     // hardcoded method for user ship placement for testing game turns
     // need to remove once user ship placement is used
-    public void PlaeyerShipPlacing() {
+    public void PlayerShipPlacing() {
         ShipPiece aiBattleship = new ShipPiece(ShipType.BATTLESHIP);
         ShipPiece aiCruiser = new ShipPiece(ShipType.CRUISER);
         ShipPiece aiSubmarine = new ShipPiece(ShipType.SUBMARINE);
@@ -53,7 +51,6 @@ public class PlaceShips {
             chooseColumn = gen.nextInt(10 - shipSize) + 1;
             chooseRow = gen.nextInt(10 - shipSize) + 1;
             orientation = choice[gen.nextInt(choice.length)];
-
             clear = clearPath(board.array, shipSize, orientation, chooseColumn, chooseRow);
         } while (!clear);
 
@@ -69,7 +66,8 @@ public class PlaceShips {
         board.updateOpponentArrayAfterShipPlacement(board.array);
     }
 
-    private boolean clearPath(int[][] onBoard, int shipSize, String orientation, int chooseColumn, int chooseRow) {
+    private boolean clearPath(int[][] onBoard, int shipSize,
+                    String orientation, int chooseColumn, int chooseRow) {
         boolean ans = false;
         String errMsg = "Ship too long for that position\n";
         int total = 0;
