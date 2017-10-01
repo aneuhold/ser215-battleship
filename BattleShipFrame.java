@@ -133,7 +133,6 @@ public class BattleShipFrame extends JFrame {
         int buttonHeight = 20;
         gameOptionsPanel = new JPanel();
         gameOptionsPanel.setLayout(new BorderLayout());
-        gameOptionsPanel.add(new JLabel("Game Options"));
 
         //orientation button
         JButton orientation = new JButton("<html>"
@@ -244,14 +243,17 @@ public class BattleShipFrame extends JFrame {
         playerGridPanel.setBorder(new TitledBorder(new EtchedBorder()));
     }
 
-    // call this to update opponenent GUI after event
+    /**
+     * Updates the Oponnent's GUI after an event
+     * @param board
+     */
     public void updateAiGUI(GameBoardArray board) {
         opponentGridPanel = new JPanel();
         GridLayout layout = new GridLayout(0, 10);
         int squareSize = 30;
         opponentGridPanel.setLayout(layout);
+        
         // Opponent Grid code
-
         turnOrder.switchTurns(turnOrder);
         int column, row;
         for (column = 0; column < 10; column++) {
