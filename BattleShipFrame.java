@@ -19,7 +19,7 @@ public class BattleShipFrame extends JFrame {
 
     private final String BATTLESHIP_LOGO_FILE = "Battleship-Logo.png";
     private final int FRAME_HEIGHT = 550;
-    private final int FRAME_WIDTH = 800;
+    private final int FRAME_WIDTH = 1000;
 
     private JPanel logoPanel;
     private JPanel gameOptionsPanel;
@@ -46,12 +46,15 @@ public class BattleShipFrame extends JFrame {
         // Logo Panel
         loadBattleShipLogo();
         this.add(logoPanel, BorderLayout.NORTH);
+        
         // Game Status
         loadGameStatus();
         this.add(gameStatusPanel, BorderLayout.EAST);
+        
         // Game Options
         loadGameOptions();
         this.add(gameOptionsPanel, BorderLayout.WEST);
+        
         // Center panel to hold grids and readout
         centerPanel = new JPanel();
         centerPanel.setLayout(new GridLayout(2, 1));
@@ -62,14 +65,12 @@ public class BattleShipFrame extends JFrame {
 
         // Player Grid Panel
         GameBoardArray playerBoard = new GameBoardArray();
-        loadPlayerGrid();
         updatePlayerGUI(playerBoard);
 
         gridsPanel.add(playerGridPanel);
 
         // Opponent Grid Panel
         GameBoardArray opponentBoard = new GameBoardArray();
-        loadOpponentGrid();
         PlaceShips ships = new PlaceShips(opponentBoard);
         ships.opponentShipPlacing();
         updateAiGUI(opponentBoard);
@@ -135,7 +136,9 @@ public class BattleShipFrame extends JFrame {
         gameOptionsPanel.add(new JLabel("Game Options"));
 
         //orientation button
-        JButton orientation = new JButton("Change Ship Orientation");
+        JButton orientation = new JButton("<html>"
+            + "<center>Change<br>Ship<br>Orientation<center>"
+            + "</html>");
         orientation.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
         orientation.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
         orientation.addActionListener(e -> {
@@ -146,6 +149,7 @@ public class BattleShipFrame extends JFrame {
             }
 
         });
+        
         //ship buttons
         //carrier button
         JButton carrier = new JButton("Carrier");
@@ -238,14 +242,6 @@ public class BattleShipFrame extends JFrame {
         // Player Grid code
         playerGridPanel.add(new JLabel("Player Grid"));
         playerGridPanel.setBorder(new TitledBorder(new EtchedBorder()));
-    }
-
-    public void loadOpponentGrid() {
-        opponentGridPanel = new JPanel();
-        // Opponent Grid code
-        opponentGridPanel.add(new JLabel("Opponent Grid"));
-        opponentGridPanel.setBorder(new TitledBorder(new EtchedBorder()));
-
     }
 
     // call this to update opponenent GUI after event
