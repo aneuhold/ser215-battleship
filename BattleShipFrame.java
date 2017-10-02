@@ -19,7 +19,7 @@ public class BattleShipFrame extends JFrame {
 
     private final String BATTLESHIP_LOGO_FILE = "Battleship-Logo.png";
     private final int FRAME_HEIGHT = 550;
-    private final int FRAME_WIDTH = 800;
+    private final int FRAME_WIDTH = 1000;
 
     private JPanel logoPanel;
     private JPanel gameOptionsPanel;
@@ -37,6 +37,7 @@ public class BattleShipFrame extends JFrame {
     private JButton playerButtonArray[][] = new JButton[10][10];
     private String selectedShip = "";
     private String selectedOrientation = "Horz";
+    private GameBoardArray playerBoard = new GameBoardArray();
 
     /**
      * Builds all components for the Battleship frame and makes it visible.
@@ -46,12 +47,15 @@ public class BattleShipFrame extends JFrame {
         // Logo Panel
         loadBattleShipLogo();
         this.add(logoPanel, BorderLayout.NORTH);
+
         // Game Status
         loadGameStatus();
         this.add(gameStatusPanel, BorderLayout.EAST);
+
         // Game Options
         loadGameOptions();
         this.add(gameOptionsPanel, BorderLayout.WEST);
+
         // Center panel to hold grids and readout
         centerPanel = new JPanel();
         centerPanel.setLayout(new GridLayout(2, 1));
@@ -61,15 +65,12 @@ public class BattleShipFrame extends JFrame {
         centerPanel.add(gridsPanel);
 
         // Player Grid Panel
-        GameBoardArray playerBoard = new GameBoardArray();
-        loadPlayerGrid();
         updatePlayerGUI(playerBoard);
 
         gridsPanel.add(playerGridPanel);
 
         // Opponent Grid Panel
         GameBoardArray opponentBoard = new GameBoardArray();
-        loadOpponentGrid();
         PlaceShips ships = new PlaceShips(opponentBoard);
         ships.opponentShipPlacing();
         updateAiGUI(opponentBoard);
@@ -132,10 +133,11 @@ public class BattleShipFrame extends JFrame {
         int buttonHeight = 20;
         gameOptionsPanel = new JPanel();
         gameOptionsPanel.setLayout(new BorderLayout());
-        gameOptionsPanel.add(new JLabel("Game Options"));
 
         //orientation button
-        JButton orientation = new JButton("Change Ship Orientation");
+        JButton orientation = new JButton("<html>"
+                + "<center>Change<br>Ship<br>Orientation<center>"
+                + "</html>");
         orientation.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
         orientation.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
         orientation.addActionListener(e -> {
@@ -146,6 +148,7 @@ public class BattleShipFrame extends JFrame {
             }
 
         });
+
         //ship buttons
         //carrier button
         JButton carrier = new JButton("Carrier");
@@ -216,13 +219,49 @@ public class BattleShipFrame extends JFrame {
         });
         gameOptionsPanel.add(newGame, BorderLayout.BEFORE_FIRST_LINE);
         // Options
-        JButton options = new JButton("Options");
-        options.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
-        options.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
-        options.addActionListener(e -> {
-            // Options Actions:
+        JButton startGame = new JButton("Start Game");
+        startGame.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
+        startGame.setMaximumSize(new Dimension(buttonWidth, buttonHeight));
+        startGame.addActionListener(e -> {
+            boolean placedCarrier = false;
+            boolean placedBattleship = false;
+            boolean placedCruiser = false;
+            boolean placedSubmarine = false;
+            boolean placedDestroyer = false;
+            for (int i = 0; i < 10; i++) {
+                for (int j = 0; j < 10; j++) {
+                    if (playerBoard.array[i][j] == 1) {
+                        placedCarrier = true;
+                    }
+                    if (playerBoard.array[i][j] == 2) {
+                        placedBattleship = true;
+                    }
+                    if (playerBoard.array[i][j] == 3) {
+                        placedCruiser = true;
+                    }
+                    if (playerBoard.array[i][j] == 4) {
+                        placedSubmarine = true;
+                    }
+                    if (playerBoard.array[i][j] == 5) {
+                        placedDestroyer = true;
+                    }
+
+                }
+            }
+            System.out.println(placedCarrier);
+            System.out.println(placedBattleship);
+            System.out.println(placedCruiser);
+            System.out.println(placedSubmarine);
+            System.out.println(placedDestroyer);
+
+            if ((placedCarrier) && (placedBattleship) && (placedCruiser) && (placedSubmarine) && (placedDestroyer)) {
+                gameOptionsPanel.remove(shipGridPanel);
+                gameOptionsPanel.repaint();
+                selectedShip = "";
+            }
+
         });
-        gameOptionsPanel.add(options, BorderLayout.SOUTH);
+        gameOptionsPanel.add(startGame, BorderLayout.SOUTH);
         gameOptionsPanel.setBorder(new TitledBorder(new EtchedBorder()));
     }
 
@@ -240,22 +279,18 @@ public class BattleShipFrame extends JFrame {
         playerGridPanel.setBorder(new TitledBorder(new EtchedBorder()));
     }
 
-    public void loadOpponentGrid() {
-        opponentGridPanel = new JPanel();
-        // Opponent Grid code
-        opponentGridPanel.add(new JLabel("Opponent Grid"));
-        opponentGridPanel.setBorder(new TitledBorder(new EtchedBorder()));
-
-    }
-
-    // call this to update opponenent GUI after event
+    /**
+     * Updates the Oponnent's GUI after an event
+     *
+     * @param board
+     */
     public void updateAiGUI(GameBoardArray board) {
         opponentGridPanel = new JPanel();
         GridLayout layout = new GridLayout(0, 10);
         int squareSize = 30;
         opponentGridPanel.setLayout(layout);
-        // Opponent Grid code
 
+        // Opponent Grid code
         turnOrder.switchTurns(turnOrder);
         int column, row;
         for (column = 0; column < 10; column++) {
@@ -348,78 +383,6 @@ public class BattleShipFrame extends JFrame {
         }
     }
 
-    /*
-       // call this to update player GUI after event
-    public void updatePlayerGUI(GameBoardArray board) {
-
-        playerGridPanel = new JPanel();
-        GridLayout layout = new GridLayout(0, 10);
-        int squareSize = 30;
-        playerGridPanel.setLayout(layout);
-
-        // Player Grid code
-        int column, row;
-        for (column = 0; column < 10; column++) {
-            for (row = 0; row < 10; row++) {
-
-                String boardPOS = String.format("%s%s", asChar(column), row + 1);
-                JButton square = new JButton(boardPOS);
-                square.setPreferredSize(new Dimension(squareSize, squareSize));
-                square.setMaximumSize(new Dimension(squareSize, squareSize));
-
-                int thisColumn = column;
-                int thisRow = row;
-
-                // Show ship placed
-                square.addActionListener(e -> {
-                    int[] clickedLocation = new int[2];
-                    clickedLocation[0] = thisColumn;
-                    clickedLocation[1] = thisRow;
-
-                    PlaceShips newShip = new PlaceShips(clickedLocation);
-                    newShip.placeUserShips(board);
-                    System.out.println(thisColumn + " Column");
-                    System.out.println(thisRow + " Row");
-                    System.out.println(board.array[thisColumn][thisRow]);
-
-                    //  square.revaidate();
-                    square.repaint();
-                    updatePlayerGUI(board);
-
-                });
-
-                // 0 means no shots attempted at this loaction, -1 means hit, -2 means miss,
-                // refresh board if location was a hit
-                if (board.array[thisColumn][thisRow] == -1) {
-                    square.setBackground(Color.RED);
-                    square.setEnabled(false);
-                }
-
-                // refresh board if location was a miss
-                if (board.array[thisColumn][thisRow] == -2) {
-                    square.setBackground(Color.BLUE);
-                    square.setEnabled(false);
-                }
-
-                // Show ship placed
-                if (board.array[thisColumn][thisRow] >= 1) {
-
-
-                    square.setBackground(Color.GREEN);
-                    square.setOpaque(true);
-                    square.setEnabled(false);
-                    square.setBorderPainted(false);
-                    System.out.println("WHY DID I NOT TURN GREEN BACKUP");
-
-                }
-                playerGridPanel.revalidate();
-                playerGridPanel.repaint();
-                playerGridPanel.remove(square);
-                playerGridPanel.add(square);
-
-            }
-        }
-    } */
     // this method is just used to display letters onto GUI board buttons
     private String asChar(int val) {
         String ans = "";
@@ -458,33 +421,4 @@ public class BattleShipFrame extends JFrame {
         return ans;
     }
 
-    /*private int getBtnRow(String text) {
-        String storedValue = "";
-        if (text.length() == 2) {
-            storedValue = text.substring(text.length() - 1, text.length());
-        } else if (text.length() == 3) {
-            storedValue = text.substring(text.length() - 2, text.length());
-        }
-        int ans = Integer.parseInt(storedValue) - 1; // start counting from 0 instead of 1
-        return ans;
-    }
-
-    //this method is just used to display GUI button numbers
-    private int getBtnColumn(String text) {
-        String firstChar = text.substring(0, 1);
-        int ans = 0;
-        switch (firstChar) {
-            case "A": ans = 0; break;
-            case "B": ans = 1; break;
-            case "C": ans = 2; break;
-            case "D": ans = 3; break;
-            case "E": ans = 4; break;
-            case "F": ans = 5; break;
-            case "G": ans = 6; break;
-            case "H": ans = 7; break;
-            case "I": ans = 8; break;
-            case "J": ans = 9; break;
-        }
-        return ans;
-    }*/
 }
