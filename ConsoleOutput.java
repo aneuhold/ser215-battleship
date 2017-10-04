@@ -35,6 +35,6 @@ public class ConsoleOutput {
     }
 
     public static void resetConsole() {
-        console.setText("");
+        console.setText("Choose a ship to place on the left,\nWhen all ships are placed press Start Game.\n");
     }
 }
